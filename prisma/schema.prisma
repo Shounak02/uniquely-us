@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// To use Neon/PostgreSQL:
+// 1. Change provider to "postgresql"
+// 2. Set url to env("DATABASE_URL")
+// 3. Add directUrl to env("DIRECT_URL") for serverless environments
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String           @unique
+  password        String           // Hashed
+  joinedDate      String           @default("March 2026")
+  avatarInitials  String           @default("U")
+  
+  // Gamification
+  xp              Int              @default(50)
+  level           Int              @default(1)
+  
+  testHistory     TestResult[]
+  uploadedReports UploadedReport[]
+  posts           CommunityPost[]
+  progress        ActivityProgress[]
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model TestResult {
+  id         String   @id @default(cuid())
+  modelName  String
+  date       String
+  score      Int      // 0-100
+  risk       String   // "Low" | "Moderate" | "High"
+  summary    String
+  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  type      String   // "Drawing" | "Story" | "Audio"
+  content   String   // Text or data URL for visuals
+  caption   String?
+  likes     Int      @default(0)
+  date      String
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
+
+model ActivityProgress {
+  id         String   @id @default(cuid())
+  activityId String   // ID of the game/exercise
+  completed  DateTime @default(now())
+  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UploadedReport {
+  id           String   @id @default(cuid())
+  fileName     String
+  uploadedDate String
+  type         String   // "Clinical Assessment" | "Occupational Therapy" | "Speech Therapy" | "Other"
+  status       String   // "Analyzed" | "Pending Review"
+  
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime @default(now())
+}
