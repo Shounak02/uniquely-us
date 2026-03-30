@@ -1,24 +1,17 @@
-"use client";
-
 import Link from "next/link";
-import { useAuth } from "./context/AuthContext";
 
 export default function Home() {
-  const { isLoggedIn } = useAuth();
-
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 font-sans dark:bg-black text-black dark:text-zinc-50">
       <header className="px-6 py-4 flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800">
         <h1 className="text-xl font-bold tracking-tight">Uniquely Us</h1>
         <nav className="flex gap-4">
-          <Link href={isLoggedIn ? "/dashboard" : "/login"} className="text-sm font-medium hover:text-zinc-600 dark:hover:text-zinc-400">
-            {isLoggedIn ? "Dashboard" : "Log In"}
+          <Link href="/dashboard" className="text-sm font-medium hover:text-zinc-600 dark:hover:text-zinc-400">
+            Dashboard
           </Link>
-          {!isLoggedIn && (
-            <Link href="/login" className="text-sm font-bold bg-zinc-950 dark:bg-zinc-50 text-white dark:text-zinc-950 px-4 py-1.5 rounded-full hover:opacity-90">
-              Sign Up
-            </Link>
-          )}
+          <Link href="/login" className="text-sm font-medium hover:text-zinc-600 dark:hover:text-zinc-400">
+            Login
+          </Link>
         </nav>
       </header>
 
@@ -33,13 +26,13 @@ export default function Home() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
             <Link 
-              href={isLoggedIn ? "/test" : "/login"}
+              href="/test"
               className="px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-lg hover:opacity-90 transition-all shadow-lg"
             >
               Take ASD Test
             </Link>
             <Link 
-              href={isLoggedIn ? "/upload-report" : "/login"}
+              href="/upload-report"
               className="px-8 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-lg hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm"
             >
               Upload Existing Report

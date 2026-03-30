@@ -3,7 +3,7 @@ import { prisma } from "../../../lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const { userId, modelName, date, score, risk, summary, rawInputs } = await req.json();
+    const { userId, modelName, date, score, risk, summary } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +23,6 @@ export async function POST(req: Request) {
         score,
         risk,
         summary,
-        rawInputs: rawInputs || null,
       },
     });
 

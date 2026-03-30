@@ -45,7 +45,6 @@ model TestResult {
   score      Int      // 0-100
   risk       String   // "Low" | "Moderate" | "High"
   summary    String
-  rawInputs  Json?
   
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
