@@ -89,7 +89,7 @@ export default function TestPage() {
 
       const result: AnalysisResult = await res.json();
       // Store result in sessionStorage so the results page can read it
-      sessionStorage.setItem("latestTestResult", JSON.stringify(result));
+      sessionStorage.setItem("latestTestResult", JSON.stringify({ ...result, rawInputs: payload }));
       router.push("/test/results");
     } catch (err: unknown) {
       clearInterval(intervalId);

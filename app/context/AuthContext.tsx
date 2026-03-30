@@ -10,6 +10,7 @@ export type TestResult = {
   score: number; // 0-100
   risk: "Low" | "Moderate" | "High" | string;
   summary: string;
+  rawInputs?: any;
 };
 
 export type UploadedReport = {

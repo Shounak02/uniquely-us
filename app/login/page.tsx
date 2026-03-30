@@ -218,7 +218,7 @@ export default function AuthPage() {
 
           {/* Social Logins */}
           <div className="grid grid-cols-2 gap-4">
-            <button type="button" className="flex items-center justify-center gap-3 p-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
+            <button type="button" onClick={() => setError("Google login is not enabled in this learning environment. Please use the email form.")} className="flex items-center justify-center gap-3 p-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-[0.98]">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -227,7 +227,7 @@ export default function AuthPage() {
               </svg>
               Google
             </button>
-            <button type="button" className="flex items-center justify-center gap-3 p-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
+            <button type="button" onClick={() => setError("Apple login is not enabled in this learning environment. Please use the email form.")} className="flex items-center justify-center gap-3 p-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-[0.98]">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M17.05 20.28c-.96.95-2.06 1.9-3.37 1.9-1.27 0-1.7-.77-3.23-.77-1.54 0-2.01.74-3.27.77-1.31.03-2.41-.95-3.37-1.9-1.97-2.84-3.48-8.05-1.44-11.58 1.01-1.75 2.81-2.85 4.77-2.88 1.48-.03 2.89 1 3.8 1 .9 0 2.62-1.25 4.39-1.07 1.01.04 2.81.4 4.01 2.14-.1.06-2.4 1.4-2.4 4.22 0 3.39 2.97 4.58 3.02 4.6-.03.09-.47 1.62-1.52 3.16M12.03 5.43c.48-2.42 2.41-4.3 4.83-4.3.2 0 .42.01.6.03-.12 2.47-2.03 4.49-4.51 4.49-.24 0-.6-.04-.92-.22" />
               </svg>

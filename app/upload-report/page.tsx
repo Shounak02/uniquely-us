@@ -1,43 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 
 export default function UploadReportPage() {
-  const { addReport, isLoggedIn } = useAuth();
+  const { addReport, addTestResult, isLoggedIn } = useAuth();
   const router = useRouter();
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = () => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 30;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        clearInterval(interval);
-        
-        // Save to DB if logged in
-        if (isLoggedIn) {
-          addReport({
-            fileName: "Clinical_ASD_Assessment.pdf",
-            uploadedDate: new Date().toLocaleDateString("en-IN", {
-              day: "numeric", month: "long", year: "numeric",
-            }),
-            type: "Clinical Assessment",
-            status: "Analyzed",
-          });
-        }
+    setProgress(15);
+    
+    // Read file text
+    const textBlob = await file.text().catch(() => "Binary file uploaded");
+    setProgress(45);
 
-        setTimeout(() => {
-          router.push("/next-steps");
-        }, 800);
+    try {
+      const res = await axios.post("/api/parse-report", { 
+        textContent: textBlob, 
+        fileName: file.name 
+      });
+      setProgress(85);
+
+      const parsedData = res.data;
+
+      // Save to DB if logged in
+      if (isLoggedIn) {
+        // 1. Save standard file metadata in reports tab
+        await addReport({
+          fileName: file.name,
+          uploadedDate: new Date().toLocaleDateString("en-IN", {
+            day: "numeric", month: "long", year: "numeric",
+          }),
+          type: "Clinical Assessment",
+          status: "Analyzed",
+        });
+
+        // 2. Save the extracted AI analytics in Test History
+        await addTestResult({
+          modelName: parsedData.modelName || "Clinical Document Analysis",
+          date: new Date().toLocaleDateString("en-IN", {
+            day: "numeric", month: "long", year: "numeric",
+          }),
+          score: parsedData.score || 50,
+          risk: parsedData.risk || "Moderate",
+          summary: parsedData.summary || "Document parsed and logged.",
+        });
       }
-      setProgress(currentProgress);
-    }, 400);
+
+      setProgress(100);
+      setTimeout(() => {
+        router.push("/next-steps");
+      }, 500);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to parse report. Please try again.");
+      setIsUploading(false);
+      setProgress(0);
+    }
   };
 
   return (
@@ -77,17 +107,24 @@ export default function UploadReportPage() {
 
           {!isUploading ? (
             <div 
-              onClick={handleUpload}
+              onClick={() => fileInputRef.current?.click()}
               className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-16 border-2 border-dashed border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none flex flex-col items-center justify-center space-y-8 text-center hover:border-blue-500 dark:hover:border-blue-400 cursor-pointer transition-all hover:scale-[1.01] hover:bg-zinc-50 dark:hover:bg-zinc-900 group"
             >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange}
+                className="hidden" 
+                accept=".pdf,.png,.jpg,.jpeg,.txt" 
+              />
               <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-900 rounded-3xl flex items-center justify-center text-4xl group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-blue-500/20">
                 📄
               </div>
               <div className="space-y-2">
-                <p className="font-black text-2xl mb-1">Upload Result</p>
-                <p className="text-zinc-500 dark:text-zinc-400">PDF, PNG or JPG files accepted (max 10MB)</p>
+                <p className="font-black text-2xl mb-1">Click to Upload Result</p>
+                <p className="text-zinc-500 dark:text-zinc-400">PDF, TXT, or Image files accepted (max 10MB)</p>
               </div>
-              <button className="px-10 py-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl font-black text-lg shadow-2xl hover:opacity-90 transition-all active:scale-95">
+              <button className="px-10 py-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl font-black text-lg shadow-2xl hover:opacity-90 transition-all active:scale-95 pointer-events-none">
                 Select File
               </button>
             </div>

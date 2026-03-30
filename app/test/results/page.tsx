@@ -125,6 +125,7 @@ export default function ResultsPage() {
         score: Math.round(result.overallScore),
         risk: result.riskLevel,
         summary: result.summary,
+        rawInputs: (result as any).rawInputs,
       });
     }
     setSaved(true);

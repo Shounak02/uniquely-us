@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import { QUESTIONS, SCALE } from "../components/TestQuestionnaire";
 import axios from "axios";
 
 const ASD_NEWS = [
@@ -216,6 +217,98 @@ export default function DashboardPage() {
     }
   };
 
+  const downloadTestPDF = async (e: React.MouseEvent, test: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF();
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(30, 64, 175);
+      doc.text("Uniquely Us", 105, 20, { align: "center" });
+
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Individual Assessment Report", 105, 30, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Patient: ${user?.firstName} ${user?.lastName}`, 20, 50);
+      doc.text(`Date of Assessment: ${test.date}`, 20, 60);
+      doc.text(`Assessment Tool: ${test.modelName}`, 20, 70);
+
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 75, 190, 75);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Diagnostic Metrics:", 20, 90);
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(`Calculated Score: ${test.score} / 100`, 30, 100);
+      doc.text(`Risk Indicator: ${test.risk}`, 30, 110);
+      
+      doc.setFont("helvetica", "bold");
+      doc.text("Clinical Summary:", 20, 130);
+      
+      doc.setFont("helvetica", "normal");
+      const splitText = doc.splitTextToSize(test.summary, 160);
+      doc.text(splitText, 30, 140);
+
+      let currentY = 140 + (splitText.length * 7) + 10;
+
+      if (test.rawInputs) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("User Inputs & Answers:", 20, currentY);
+        currentY += 8;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        
+        if (test.rawInputs.answers) {
+           Object.entries(test.rawInputs.answers).forEach(([qId, sValue]) => {
+              if (currentY > 270) {
+                 doc.addPage();
+                 currentY = 20;
+              }
+              const questionObj = QUESTIONS.find(q => q.id === qId);
+              const scaleObj = SCALE.find(s => s.value === sValue);
+              
+              const qText = questionObj ? questionObj.text : qId;
+              const aText = scaleObj ? scaleObj.label : String(sValue);
+              
+              const wrappedQ = doc.splitTextToSize(`Q: ${qText}`, 160);
+              doc.text(wrappedQ, 25, currentY);
+              currentY += (wrappedQ.length * 5);
+              
+              doc.setTextColor(30, 64, 175);
+              doc.text(`A: ${aText} (${sValue}/5)`, 30, currentY);
+              doc.setTextColor(0, 0, 0);
+              currentY += 8;
+           });
+        } else if (test.rawInputs.scores) {
+           Object.entries(test.rawInputs.scores).forEach(([key, val]) => {
+             if (key !== "imageFile") {
+               doc.text(`- ${key}: ${val}`, 30, currentY);
+               currentY += 6;
+             }
+           });
+        }
+      }
+      
+      const footerY = currentY > 270 ? 280 : 280;
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("CONFIDENTIAL CLINICAL DATA - UNIQUELY US PLATFORM", 105, footerY, { align: "center" });
+
+      doc.save(`${test.modelName.replace(/\s+/g, '_')}_${test.date.replace(/\//g, "-")}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate test PDF", err);
+      alert("Could not generate PDF right now.");
+    }
+  };
+
   const handleUnlockAnalytics = (e: React.FormEvent) => {
     e.preventDefault();
     if (parentPasswordInput === "parent123") { // Mock parent password
@@ -263,8 +356,8 @@ export default function DashboardPage() {
             <span className="text-lg font-black tracking-tighter hidden sm:block">Uniquely Us</span>
           </Link>
           <nav className="hidden md:flex gap-1">
-            <Link href="/test" className="px-3 py-1.5 text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">New Test</Link>
-            <Link href="/upload-report" className="px-3 py-1.5 text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">Upload Report</Link>
+            <Link href="/test" className="px-3 py-1.5 text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">Start Assessment</Link>
+            <Link href="/upload-report" className="px-3 py-1.5 text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">Analyze Document</Link>
             <Link href="/community" className="px-3 py-1.5 text-sm font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-800/40 rounded-lg transition-colors flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
               Community
@@ -387,9 +480,20 @@ export default function DashboardPage() {
                             <p className="text-xs text-zinc-400 font-medium mb-2">{test.date}</p>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{test.summary}</p>
                           </div>
-                          <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 group-hover:border-blue-500/30 transition-all">
-                            <span className="text-2xl font-black">{test.score}</span>
-                            <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">Score</span>
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 group-hover:border-blue-500/30 transition-all">
+                              <span className="text-2xl font-black">{test.score}</span>
+                              <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">Score</span>
+                            </div>
+                            <button 
+                              onClick={(e) => downloadTestPDF(e, test)}
+                              className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] font-bold text-zinc-500 hover:text-blue-600 transition-all uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg"
+                            >
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                              </svg>
+                              PDF
+                            </button>
                           </div>
                         </div>
                       </Link>

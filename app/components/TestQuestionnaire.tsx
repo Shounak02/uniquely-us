@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { BehavioralAnswers } from "../types/analysis";
 
-const QUESTIONS = [
+export const QUESTIONS = [
   { id: "q01", domain: "Social Reciprocity",    text: "My child makes eye contact during conversations." },
   { id: "q02", domain: "Social Reciprocity",    text: "My child responds when their name is called." },
   { id: "q03", domain: "Social Reciprocity",    text: "My child shares enjoyment or interests by pointing or showing." },
@@ -26,7 +26,7 @@ const QUESTIONS = [
   { id: "q20", domain: "Adaptive Behavior",     text: "My child can independently manage daily self-care tasks." },
 ];
 
-const SCALE = [
+export const SCALE = [
   { value: 1, label: "Never" },
   { value: 2, label: "Rarely" },
   { value: 3, label: "Sometimes" },
